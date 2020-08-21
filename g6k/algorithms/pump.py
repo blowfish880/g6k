@@ -72,7 +72,7 @@ def scoring_down(i, nlen, olen, aux):
 def pump(g6k, tracer, kappa, blocksize, dim4free, down_sieve=False,                                 # Main parameters
          goal_r0=None, max_up_time=None, down_stop=None, start_up_n=30, saturation_error="weaken",  # Flow control of the pump
          increasing_insert_index=True, prefer_left_insert=1.04,                                     # Insertion policy
-         verbose=False,                                                                             # Misc
+         verbose=False, printdb=False                                                                           # Misc
          ):
     """
     Run the pump algorithm.
@@ -134,7 +134,17 @@ def pump(g6k, tracer, kappa, blocksize, dim4free, down_sieve=False,             
 
             if goal_r0 is not None and (g6k.M.get_r(kappa, kappa) <= goal_r0):
                 return
+            
+            if printdb:
+                db = map(lambda x: str(x) + '\n', list(g6k.itervalues()))
+                
+                with open("vector_db.txt", "w") as db_file:
+                    db_file.writelines(db)
+                
+                with open("basis.txt", "w") as mat_file:
+                    mat_file.write(str(g6k.M.B))
 
+            
             # Pump Down
             pump.phase = "down"
             while (g6k.n > 1) and (pump.insert_left_bound <= kappa+down_stop):

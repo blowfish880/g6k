@@ -9,6 +9,7 @@ import pickle as pickler
 from collections import OrderedDict
 
 from g6k.algorithms.workout import workout
+from g6k.algorithms.pump import pump
 from g6k.siever import Siever
 from g6k.utils.cli import parse_args, run_all, pop_prefixed_params
 from g6k.utils.stats import SieveTreeTracer
@@ -26,6 +27,7 @@ def full_sieve_kernel(arg0, params=None, seed=None):
 
     pump_params = pop_prefixed_params("pump", params)
     verbose = params.pop("verbose")
+    printdb = params.pop("printdb")
 
     reserved_n = n
     params = params.new(reserved_n=reserved_n, otf_lift=False)
@@ -35,10 +37,15 @@ def full_sieve_kernel(arg0, params=None, seed=None):
 
     g6k = Siever(A, params, seed=seed)
     tracer = SieveTreeTracer(g6k, root_label=("full-sieve", n), start_clocks=True)
-
-    # Actually runs a workout with very large decrements, so that the basis is kind-of reduced
-    # for the final full-sieve
-    workout(g6k, tracer, 0, n, dim4free_min=0, dim4free_dec=15, pump_params=pump_params, verbose=verbose)
+    
+    if printdb:
+        workout(g6k, tracer, 15, n-15, dim4free_min=0, dim4free_dec=15, pump_params=pump_params, verbose=verbose)
+        pump_params["printdb"] = printdb
+        pump(g6k, tracer, 0, n, 0, **pump_params)
+    else:
+        # Actually runs a workout with very large decrements, so that the basis is kind-of reduced
+        # for the final full-sieve
+        workout(g6k, tracer, 0, n, dim4free_min=0, dim4free_dec=15, pump_params=pump_params, verbose=verbose)
 
     return tracer.exit()
 
